@@ -1,0 +1,181 @@
+version: '3.9'
+
+services:
+  # ============================================================================
+  # PostgreSQL Database
+  # ============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: translation_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: translation_db
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - translation_network
+
+  # ============================================================================
+  # Redis (Broker & Cache)
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: translation_redis
+    command: redis-server --appendonly yes --requirepass ""
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - translation_network
+
+  # ============================================================================
+  # FastAPI Application
+  # ============================================================================
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: translation_api
+    environment:
+      APP_ENVIRONMENT: development
+      APP_DEBUG: "true"
+      APP_LOG_LEVEL: DEBUG
+      
+      DB_DRIVER: "postgresql+asyncpg"
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_DATABASE: translation_db
+      DB_ECHO: "false"
+      
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      REDIS_PASSWORD: ""
+      
+      CELERY_BROKER_URL: "redis://:@redis:6379/0"
+      CELERY_RESULT_BACKEND_URL: "redis://:@redis:6379/1"
+      
+      TELEGRAM_TOKEN: "${TELEGRAM_TOKEN}"
+      
+      LLM_PROVIDER: anthropic
+      LLM_ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
+      LLM_ANTHROPIC_MODEL: "claude-3-5-sonnet-20241022"
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/.venv  # Don't mount venv
+    networks:
+      - translation_network
+    command: >
+      sh -c "
+        pip install -e . &&
+        uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+
+  # ============================================================================
+  # Celery Worker
+  # ============================================================================
+  celery_worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: translation_celery
+    environment:
+      APP_ENVIRONMENT: development
+      APP_LOG_LEVEL: DEBUG
+      
+      DB_DRIVER: "postgresql+asyncpg"
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_DATABASE: translation_db
+      
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      
+      CELERY_BROKER_URL: "redis://:@redis:6379/0"
+      CELERY_RESULT_BACKEND_URL: "redis://:@redis:6379/1"
+      
+      LLM_PROVIDER: anthropic
+      LLM_ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
+      LLM_ANTHROPIC_MODEL: "claude-3-5-sonnet-20241022"
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - .:/app
+    networks:
+      - translation_network
+    command: >
+      sh -c "
+        pip install -e . &&
+        celery -A workers.celery_app worker --loglevel=debug --concurrency=4
+      "
+
+  # ============================================================================
+  # Flower (Celery Task Monitor)
+  # ============================================================================
+  flower:
+    image: mher/flower
+    container_name: translation_flower
+    environment:
+      CELERY_BROKER_URL: "redis://:@redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://:@redis:6379/1"
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+      - celery_worker
+    networks:
+      - translation_network
+    command: celery --broker=redis://:@redis:6379/0 --result-backend=redis://:@redis:6379/1 flower
+
+  # ============================================================================
+  # pgAdmin (PostgreSQL Admin Panel)
+  # ============================================================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: translation_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - translation_network
+
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  translation_network:
+    driver: bridge
