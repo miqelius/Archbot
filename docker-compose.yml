@@ -1,0 +1,53 @@
+services:
+  redis:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    image: redis:alpine
+    container_name: archbot_redis
+    ports:
+      - "6380:6379"
+    restart: always
+
+  web:
+    build: .
+    container_name: archbot_web
+    command: uvicorn api_main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    restart: always
+
+  celery:
+    build: .
+    container_name: archbot_celery
+    command: celery -A celery_app.celery_app worker --loglevel=info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    restart: always
+
+  bot:
+    build: .
+    container_name: archbot_telegram_bot
+    command: python test_run.py
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    restart: always

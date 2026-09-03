@@ -1,7 +1,7 @@
 import requests
 import time
 
-BASE_URL = "http://localhost:8000/api"
+BASE_URL = "http://web:8000/api"
 
 def test_pipeline():
     payload = {
