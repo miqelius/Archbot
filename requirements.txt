@@ -69,3 +69,4 @@ typer==0.9.0
 tqdm==4.66.2  # Progress bars
 tenacity==8.2.3  # Retry logic
 psycopg2-binary
+psycopg2-binary
