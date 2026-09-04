@@ -8,3 +8,4 @@ pydantic-settings
 redis
 celery
 google-generativeai
+httpx
