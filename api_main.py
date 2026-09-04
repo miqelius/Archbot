@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 import logging
+from aiogram.types import Update
+
+from bot import bot, dp 
 
 from core.core_config import settings
 from core.core_database import DatabaseManager, check_database_health
@@ -63,8 +66,12 @@ def create_app() -> FastAPI:
 
 app = create_app()
 
-# სატესტო ენდფოინთი, რომელიც Swagger-ში გამოჩნდება
 @app.get("/", tags=["Main"])
 async def read_root():
     return {"message": "Welcome to Archbot API!"}
 
+@app.post("/webhook", tags=["Telegram"])
+async def telegram_webhook(update: dict):
+    telegram_update = Update.model_validate(update, context={"bot": bot})
+    await dp.feed_update(bot, telegram_update)
+    return {"status": "ok"}
