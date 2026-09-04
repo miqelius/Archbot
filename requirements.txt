@@ -9,3 +9,4 @@ redis
 celery
 google-generativeai
 httpx
+google-genai
