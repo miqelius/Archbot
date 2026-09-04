@@ -117,7 +117,7 @@ Need help? Contact @gio_dev
 @router.message(
     StateFilter(TranslationStates.waiting_for_input),
     F.text,
-    ~Command(),
+    ~F.text.startswith("/"),
 )
 async def handle_text_input(
     message: types.Message,
