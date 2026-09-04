@@ -212,10 +212,10 @@ async def handle_document_upload(
     document = message.document
     
     # Validate file size
-    max_size_bytes = settings.max_file_size_mb * 1024 * 1024
+    max_size_bytes = 20 * 1024 * 1024
     if document.file_size > max_size_bytes:
         await message.answer(
-            f"❌ File too large. Maximum {settings.max_file_size_mb}MB."
+            f"❌ File too large. Maximum {20}MB."
         )
         return
     
