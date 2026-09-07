@@ -13,6 +13,7 @@ from core.core_redis import RedisClient
 from celery_app import celery_app
 from fastapi.middleware.cors import CORSMiddleware
 from routers.jobs import router as jobs_router 
+from routers.real_estate import router as real_estate_router
 
 logger = logging.getLogger(__name__)
 
@@ -83,8 +84,9 @@ def create_app() -> FastAPI:
 
 app = create_app()
 
-# როუტერი იერთება მას შემდეგ, რაც აპლიკაცია (app) სრულად შეიქმნება
+# როუტერების მიერთება
 app.include_router(jobs_router, prefix="/api/v1")
+app.include_router(real_estate_router)
 
 @app.get("/", tags=["Main"])
 async def read_root():
