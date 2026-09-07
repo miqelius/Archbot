@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archbot Intelligence Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-4">
+        <div>
+            <div class="text-xl font-bold text-indigo-400 mb-8 tracking-wider">ARCHBOT</div>
+            <nav class="space-y-2">
+                <a href="#" class="block px-4 py-2.5 rounded-lg bg-indigo-600/20 text-indigo-400 font-medium">Dashboard & Chat</a>
+                <a href="#" class="block px-4 py-2.5 rounded-lg hover:bg-slate-800 text-slate-400">Market & Gold</a>
+                <a href="#" class="block px-4 py-2.5 rounded-lg hover:bg-slate-800 text-slate-400">Real Estate Search</a>
+                <a href="#" class="block px-4 py-2.5 rounded-lg hover:bg-slate-800 text-slate-400">Celery Tasks</a>
+            </nav>
+        </div>
+        <div class="text-xs text-slate-500">Render + Netlify Connected</div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col overflow-y-auto">
+        <header class="h-16 border-b border-slate-800 flex items-center justify-between px-8 bg-slate-900/50 backdrop-blur">
+            <h1 class="text-lg font-semibold">Market Intelligence & Web Assistant</h1>
+            <div class="flex items-center gap-3">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-sm text-slate-400">System Online</span>
+            </div>
+        </header>
+
+        <div class="p-8 space-y-6 flex-1 flex flex-col">
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-3 gap-6">
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+                    <p class="text-sm text-slate-400">Active Currency Rates</p>
+                    <p class="text-2xl font-bold text-indigo-400 mt-2">USD/GEL: 2.72</p>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+                    <p class="text-sm text-slate-400">Gold Price (oz)</p>
+                    <p class="text-2xl font-bold text-amber-400 mt-2">$2,345.50</p>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+                    <p class="text-sm text-slate-400">Indexed Properties</p>
+                    <p class="text-2xl font-bold text-emerald-400 mt-2">1,420 Listings</p>
+                </div>
+            </div>
+
+            <!-- Integrated Web Chat Interface -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl flex flex-col flex-1 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                    <h2 class="text-md font-semibold text-slate-200">Archbot Intelligence Assistant</h2>
+                    <span class="text-xs text-indigo-400 bg-indigo-600/10 px-2.5 py-1 rounded-full border border-indigo-500/20">Active Session</span>
+                </div>
+                
+                <!-- Chat Messages Container -->
+                <div id="chat-messages" class="flex-1 p-6 space-y-4 overflow-y-auto max-h-[400px]">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-bold">AI</div>
+                        <div class="bg-slate-950 border border-slate-800 p-3.5 rounded-xl max-w-xl text-sm text-slate-300">
+                            გამარჯობა! მე ვარ Archbot-ის ინტელექტუალური ასისტენტი. რით შემიძლია დაგეხმაროთ დღეს?
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input Form -->
+                <form id="chat-form" class="p-4 border-t border-slate-800 bg-slate-900/80 flex gap-3">
+                    <input 
+                        type="text" 
+                        id="chat-input" 
+                        placeholder="ჩაწერეთ სათარგმნი ტექსტი ან კითხვა..." 
+                        class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+                        required
+                    >
+                    <button 
+                        type="submit" 
+                        class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition"
+                    >
+                        გაგზავნა
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+
+        function appendMessage(sender, text, isError = false) {
+            const isUser = sender === 'user';
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`;
+            
+            wrapper.innerHTML = `
+                <div class="w-8 h-8 rounded-full ${isUser ? 'bg-emerald-600' : 'bg-indigo-600'} flex items-center justify-center text-sm font-bold shrink-0">
+                    ${isUser ? 'ME' : 'AI'}
+                </div>
+                <div class="bg-slate-950 border ${isError ? 'border-red-500/40 text-red-300' : 'border-slate-800 text-slate-300'} p-3.5 rounded-xl max-w-xl text-sm whitespace-pre-wrap">
+                    ${text}
+                </div>
+            `;
+            chatMessages.appendChild(wrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            appendMessage('user', text);
+            chatInput.value = '';
+
+            // Loading state indicator
+            const loadingId = 'loading-' + Date.now();
+            const loadingWrapper = document.createElement('div');
+            loadingWrapper.id = loadingId;
+            loadingWrapper.className = `flex items-start gap-3`;
+            loadingWrapper.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-bold shrink-0">AI</div>
+                <div class="bg-slate-950 border border-slate-800 p-3.5 rounded-xl text-sm text-slate-400 animate-pulse">
+                    მიმდინარეობს დამუშავება...
+                </div>
+            `;
+            chatMessages.appendChild(loadingWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                // Connecting to FastAPI backend
+                const response = await fetch('http://127.0.0.1:8000/api/v1/jobs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: "ვებ ჩატის დავალება",
+                        description: text
+                    })
+                });
+
+                if (!response.ok) throw new Error('სერვერის შეცდომა მოთხოვნისას');
+
+                const data = await response.json();
+                const jobId = data.job_id || data.id;
+
+                // Polling for job results
+                let completed = false;
+                let attempts = 0;
+                while (!completed && attempts < 30) {
+                    await new Promise(r => setTimeout(r, 2000));
+                    const statusRes = await fetch(`http://127.0.0.1:8000/api/v1/jobs/${jobId}/status`);
+                    const statusData = await statusRes.json();
+
+                    if (statusData.status === 'completed') {
+                        const resultRes = await fetch(`http://127.0.0.1:8000/api/v1/jobs/${jobId}/result`);
+                        const resultData = await resultRes.json();
+                        
+                        document.getElementById(loadingId).remove();
+                        const finalResText = resultData.result || 'დასრულებულია';
+                        appendMessage('ai', finalResText);
+                        completed = true;
+                    } else if (statusData.status === 'failed') {
+                        document.getElementById(loadingId).remove();
+                        appendMessage('ai', '❌ პროცესი ვერ მოხერხდა.', true);
+                        completed = true;
+                    }
+                    attempts++;
+                }
+
+                if (!completed) {
+                    document.getElementById(loadingId).remove();
+                    appendMessage('ai', `⏱️ პროცესი გაიწელა. Job ID: ${jobId}`, true);
+                }
+
+            } catch (err) {
+                document.getElementById(loadingId).remove();
+                appendMessage('ai', `❌ დაკავშირების შეცდომა: სერვერთან მიწვდომა ვერ მოხერხდა. (${err.message})`, true);
+            }
+        });
+    </script>
+</body>
+</html>
+```[cite: 1]
