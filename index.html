@@ -132,7 +132,7 @@
 
             try {
                 // Connecting to FastAPI backend
-                const response = await fetch('http://127.0.0.1:8000/api/v1/jobs', {
+                const response = await fetch('https://archbot-6fhv.onrender.com/api/v1/jobs', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -153,11 +153,11 @@
                 let attempts = 0;
                 while (!completed && attempts < 30) {
                     await new Promise(r => setTimeout(r, 2000));
-                    const statusRes = await fetch(`http://127.0.0.1:8000/api/v1/jobs/${jobId}/status`);
+                    const statusRes = await fetch(`https://archbot-6fhv.onrender.com/api/v1/jobs/${jobId}/status`);
                     const statusData = await statusRes.json();
 
                     if (statusData.status === 'completed') {
-                        const resultRes = await fetch(`http://127.0.0.1:8000/api/v1/jobs/${jobId}/result`);
+                        const resultRes = await fetch(`https://archbot-6fhv.onrender.com/api/v1/jobs/${jobId}/result`);
                         const resultData = await resultRes.json();
                         
                         document.getElementById(loadingId).remove();
