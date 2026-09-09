@@ -1,12 +1,5 @@
 fastapi
 uvicorn
-aiogram
 sqlalchemy
-asyncpg
-pydantic
-pydantic-settings
-redis
-celery
-google-generativeai
-httpx
-google-genai
+requests
+beautifulsoup4

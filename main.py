@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base, SessionLocal
 from models import RealEstateListing
+from services.gold_service import get_gold_market_price
 
 def seed_initial_data():
     db = SessionLocal()
@@ -32,4 +33,22 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"status": "online", "system": "Archbot API"}
+    return {"status": "online", "system": "Archbot AI"}
+
+@app.get("/api/greeting")
+def get_greeting():
+    return {
+        "message": "Hello! I am Archbot AI, your intelligent market and real estate assistant. How can I help you today?"
+    }
+
+@app.get("/api/gold")
+def get_gold():
+    price = get_gold_market_price()
+    return {"gold_price_oz": price}
+
+@app.get("/api/listings")
+def get_listings():
+    db = SessionLocal()
+    listings = db.query(RealEstateListing).all()
+    db.close()
+    return listings

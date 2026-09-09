@@ -1,347 +1,69 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archbot Intelligence Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Archbot AI</title>
+    <style>
+        :root { --bg-primary: #0f172a; --bg-sidebar: #1e293b; --text-main: #f8fafc; --accent: #6366f1; }
+        body { margin: 0; font-family: sans-serif; background-color: var(--bg-primary); color: var(--text-main); display: flex; height: 100vh; }
+        aside { width: 260px; background-color: var(--bg-sidebar); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+        .logo { font-size: 1.25rem; font-weight: bold; margin-bottom: 30px; letter-spacing: 1px; }
+        nav a { display: block; color: #94a3b8; text-decoration: none; padding: 10px 15px; border-radius: 6px; margin-bottom: 8px; transition: 0.2s; }
+        nav a:hover, nav a.active { background-color: var(--accent); color: white; }
+        main { flex: 1; padding: 40px; overflow-y: auto; }
+        select { background: var(--bg-sidebar); color: var(--text-main); border: 1px solid #334155; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 flex h-screen overflow-hidden">
-
-    <!-- Sidebar -->
-    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-4">
+<body>
+    <aside>
         <div>
-            <div class="text-xl font-bold text-indigo-400 mb-8 tracking-wider">ARCHBOT</div>
-            <nav class="space-y-2">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full text-left px-4 py-2.5 rounded-lg bg-indigo-600/20 text-indigo-400 font-medium transition">Dashboard & Chat</button>
-                <button onclick="switchTab('market')" id="nav-market" class="w-full text-left px-4 py-2.5 rounded-lg hover:bg-slate-800 text-slate-400 transition">Market & Gold</button>
-                <button onclick="switchTab('realestate')" id="nav-realestate" class="w-full text-left px-4 py-2.5 rounded-lg hover:bg-slate-800 text-slate-400 transition">Real Estate Search</button>
-                <button onclick="switchTab('celery')" id="nav-celery" class="w-full text-left px-4 py-2.5 rounded-lg hover:bg-slate-800 text-slate-400 transition">Celery Tasks</button>
+            <div class="logo">ARCHBOT AI</div>
+            <nav>
+                <a href="#" class="active" data-translate="nav_dashboard">მთავარი & ჩატი</a>
+                <a href="#" data-translate="nav_market">ოქრო & ბაზარი</a>
+                <a href="#" data-translate="nav_realestate">უძრავი ქონება</a>
             </nav>
         </div>
-        <div class="text-xs text-slate-500">Render + Netlify Connected</div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="flex-1 flex flex-col overflow-y-auto">
-        <header class="h-16 border-b border-slate-800 flex items-center justify-between px-8 bg-slate-900/50 backdrop-blur shrink-0">
-            <h1 class="text-lg font-semibold" id="header-title">Market Intelligence & Web Assistant</h1>
-            <div class="flex items-center gap-3">
-                <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="text-sm text-slate-400">System Online</span>
-            </div>
-        </header>
-
-        <div class="p-8 space-y-6 flex-1 flex flex-col">
-            
-            <!-- 1. Dashboard & Chat View -->
-            <div id="view-dashboard" class="space-y-6 flex-1 flex flex-col">
-                <!-- Stats Grid -->
-                <div class="grid grid-cols-3 gap-6 shrink-0">
-                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-                        <p class="text-sm text-slate-400">Active Currency Rates</p>
-                        <p class="text-2xl font-bold text-indigo-400 mt-2">USD/GEL: 2.72</p>
-                    </div>
-                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-                        <p class="text-sm text-slate-400">Gold Price (oz)</p>
-                        <p class="text-2xl font-bold text-amber-400 mt-2">$2,345.50</p>
-                    </div>
-                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-                        <p class="text-sm text-slate-400">Indexed Properties</p>
-                        <p class="text-2xl font-bold text-emerald-400 mt-2">1,420 Listings</p>
-                    </div>
-                </div>
-
-                <!-- Integrated Web Chat Interface -->
-                <div class="bg-slate-900 border border-slate-800 rounded-xl flex flex-col flex-1 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between shrink-0">
-                        <h2 class="text-md font-semibold text-slate-200">Archbot Intelligence Assistant</h2>
-                        <span class="text-xs text-indigo-400 bg-indigo-600/10 px-2.5 py-1 rounded-full border border-indigo-500/20">Active Session</span>
-                    </div>
-                    
-                    <!-- Chat Messages Container -->
-                    <div id="chat-messages" class="flex-1 p-6 space-y-4 overflow-y-auto">
-                        <div class="flex items-start gap-3">
-                            <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-bold shrink-0">AI</div>
-                            <div class="bg-slate-950 border border-slate-800 p-3.5 rounded-xl max-w-xl text-sm text-slate-300">
-                                გამარჯობა! მე ვარ Archbot-ის ინტელექტუალური ასისტენტი. რით შემიძლია დაგეხმაროთ დღეს?
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Chat Input Form -->
-                    <form id="chat-form" class="p-4 border-t border-slate-800 bg-slate-900/80 flex gap-3 shrink-0">
-                        <input 
-                            type="text" 
-                            id="chat-input" 
-                            placeholder="ჩაწერეთ სათარგმნი ტექსტი ან კითხვა..." 
-                            class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
-                            required
-                        >
-                        <button 
-                            type="submit" 
-                            class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition"
-                        >
-                            გაგზავნა
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- 2. Market & Gold View -->
-            <div id="view-market" class="space-y-6 hidden flex-1 flex flex-col">
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col flex-1">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-lg font-semibold text-slate-200">Market & Gold Rates</h2>
-                        <button onclick="fetchMarketData()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm transition">განახლება</button>
-                    </div>
-                    <div id="market-data" class="bg-slate-950 border border-slate-800 p-6 rounded-xl text-slate-300 flex-1">
-                        მონაცემები იტვირთება...
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. Real Estate Search View -->
-            <div id="view-realestate" class="space-y-6 hidden flex-1 flex flex-col">
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col flex-1">
-                    <h2 class="text-lg font-semibold text-slate-200 mb-4">Real Estate Search</h2>
-                    <div class="flex gap-3 mb-6">
-                        <input type="text" id="re-query" placeholder="ძებნა (მაგ: საბურთალო, 3 ოთახიანი)..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
-                        <button onclick="searchRealEstate()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-lg text-sm transition">ძებნა</button>
-                    </div>
-                    <div id="re-results" class="bg-slate-950 border border-slate-800 p-6 rounded-xl text-slate-400 flex-1 overflow-y-auto">
-                        შეიყვანეთ საძიებო პარამეტრები...
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. Celery Tasks View -->
-            <div id="view-celery" class="space-y-6 hidden flex-1 flex flex-col">
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col flex-1">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-lg font-semibold text-slate-200">Celery Background Tasks</h2>
-                        <button onclick="triggerCeleryJob()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm transition">დავალების გაშვება</button>
-                    </div>
-                    <div id="job-status" class="bg-slate-950 border border-slate-800 p-6 rounded-xl text-slate-300 font-mono text-sm flex-1">
-                        სტატუსი: უმოქმედო
-                    </div>
-                </div>
-            </div>
-
+        <div>
+            <select id="langSwitch" onchange="switchLanguage(this.value)">
+                <option value="ka" selected>ქართული</option>
+                <option value="en">English</option>
+            </select>
         </div>
+    </aside>
+    <main>
+        <h1 id="pageTitle">მთავარი პანელი</h1>
+        <p id="welcomeText">მოგესალმებით! მე ვარ Archbot AI, თქვენი ინტელექტუალური ასისტენტი.</p>
     </main>
-
     <script>
-        const API_BASE = 'https://archbot-6fhv.onrender.com';
+        const translations = {
+            ka: {
+                nav_dashboard: "მთავარი & ჩატი",
+                nav_market: "ოქრო & ბაზარი",
+                nav_realestate: "უძრავი ქონება",
+                title: "მთავარი პანელი",
+                welcome: "მოგესალმებით! მე ვარ Archbot AI, თქვენი ინტელექტუალური ასისტენტი."
+            },
+            en: {
+                nav_dashboard: "Dashboard & Chat",
+                nav_market: "Market & Gold",
+                nav_realestate: "Real Estate Search",
+                title: "Dashboard",
+                welcome: "Hello! I am Archbot AI, your intelligent market and real estate assistant."
+            }
+        };
 
-        // Tab Switching Logic
-        function switchTab(tabName) {
-            const tabs = ['dashboard', 'market', 'realestate', 'celery'];
-            tabs.forEach(t => {
-                document.getElementById(`view-${t}`).classList.add('hidden');
-                const navBtn = document.getElementById(`nav-${t}`);
-                navBtn.className = "w-full text-left px-4 py-2.5 rounded-lg hover:bg-slate-800 text-slate-400 transition";
+        function switchLanguage(lang) {
+            document.querySelectorAll("[data-translate]").forEach(el => {
+                const key = el.getAttribute("data-translate");
+                if (translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
             });
-
-            document.getElementById(`view-${tabName}`).classList.remove('hidden');
-            const activeNav = document.getElementById(`nav-${tabName}`);
-            activeNav.className = "w-full text-left px-4 py-2.5 rounded-lg bg-indigo-600/20 text-indigo-400 font-medium transition";
-
-            const titles = {
-                dashboard: 'Market Intelligence & Web Assistant',
-                market: 'Market & Gold Rates Integration',
-                realestate: 'Real Estate Search Module',
-                celery: 'Celery Background Tasks Monitor'
-            };
-            document.getElementById('header-title').innerText = titles[tabName];
-
-            if (tabName === 'market') fetchMarketData();
+            document.getElementById("pageTitle").textContent = translations[lang].title;
+            document.getElementById("welcomeText").textContent = translations[lang].welcome;
+            document.documentElement.lang = lang;
         }
-
-        // Market Data Fetch
-        async function fetchMarketData() {
-            const container = document.getElementById("market-data");
-            container.innerHTML = "მონაცემები იტვირთება...";
-            try {
-                const response = await fetch(`${API_BASE}/api/v1/market`);
-                if (!response.ok) throw new Error('ვერ მოხერხდა ბაზრის მონაცემების მიღება');
-                const data = await response.json();
-                container.innerHTML = `
-                    <div class="space-y-3">
-                        <p class="text-lg font-semibold text-amber-400">ოქროს ფასი: $${data.gold_price ?? 'N/A'}</p>
-                        <p class="text-sm text-slate-300">ბაზრის სტატუსი: <span class="text-emerald-400">${data.status ?? 'Active'}</span></p>
-                        <p class="text-xs text-slate-500 mt-4">ბოლო განახლება: ${new Date().toLocaleTimeString()}</p>
-                    </div>
-                `;
-            } catch (error) {
-                container.innerHTML = `<p class='text-red-400'>შეცდომა: ${error.message}</p>`;
-            }
-        }
-
-        // Real Estate Search Fetch
-        async function searchRealEstate() {
-            const query = document.getElementById('re-query').value.trim();
-            const resultsDiv = document.getElementById('re-results');
-            resultsDiv.innerHTML = "მიმდინარეობს ძებნა...";
-            try {
-                const response = await fetch(`${API_BASE}/api/real-estate/search?q=${encodeURIComponent(query)}`);
-                if (!response.ok) throw new Error('ძებნის შესრულება ვერ მოხერხდა');
-                const data = await response.json();
-                
-                if (!data || data.length === 0) {
-                    resultsDiv.innerHTML = "<p class='text-slate-400'>მონაცემები ვერ მოიძებნა.</p>";
-                    return;
-                }
-
-                let html = '<div class="space-y-3">';
-                data.forEach(item => {
-                    html += `<div class="p-3 bg-slate-900 border border-slate-800 rounded-lg">
-                        <p class="font-medium text-slate-200">${item.title || 'უძრავი ქონება'}</p>
-                        <p class="text-sm text-indigo-400">ფასი: $${item.price ?? 'N/A'}</p>
-                    </div>`;
-                });
-                html += '</div>';
-                resultsDiv.innerHTML = html;
-            } catch (error) {
-                resultsDiv.innerHTML = `<p class='text-red-400'>შეცდომა: ${error.message}</p>`;
-            }
-        }
-
-        // Celery Background Tasks
-        async function triggerCeleryJob() {
-            const statusDiv = document.getElementById("job-status");
-            statusDiv.innerText = "სტატუსი: დავალება იგზავნება სერვერზე...";
-            
-            try {
-                const res = await fetch(`${API_BASE}/api/v1/jobs`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ 
-                        title: "ვებ პანელის დავალება", 
-                        description: "Celery background task triggered from web dashboard" 
-                    })
-                });
-                
-                if (!res.ok) throw new Error('დავალების გაშვება ვერ მოხერხდა');
-                const data = await res.json();
-                const jobId = data.job_id || data.id;
-                
-                statusDiv.innerText = `სტატუსი: დავალება გაშვებულია (ID: ${jobId}). მიმდინარეობს დამუშავება...`;
-                
-                const interval = setInterval(async () => {
-                    try {
-                        const statusRes = await fetch(`${API_BASE}/api/v1/jobs/${jobId}/status`);
-                        const statusData = await statusRes.json();
-                        
-                        if (statusData.status === "completed") {
-                            const resultRes = await fetch(`${API_BASE}/api/v1/jobs/${jobId}/result`);
-                            const resultData = await resultRes.json();
-                            statusDiv.innerText = `სტატუსი: დასრულებულია.\nშედეგი: ${JSON.stringify(resultData.result || resultData, null, 2)}`;
-                            clearInterval(interval);
-                        } else if (statusData.status === "failed") {
-                            statusDiv.innerText = "სტატუსი: შეცდომა შესრულებისას";
-                            clearInterval(interval);
-                        }
-                    } catch (e) {
-                        // Keep polling on temporary network glitches
-                    }
-                }, 2000);
-            } catch (error) {
-                statusDiv.innerText = `სტატუსი: შეცდომა - ${error.message}`;
-            }
-        }
-
-        // Chat Script Integration
-        const chatForm = document.getElementById('chat-form');
-        const chatInput = document.getElementById('chat-input');
-        const chatMessages = document.getElementById('chat-messages');
-
-        function appendMessage(sender, text, isError = false) {
-            const isUser = sender === 'user';
-            const wrapper = document.createElement('div');
-            wrapper.className = `flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`;
-            
-            wrapper.innerHTML = `
-                <div class="w-8 h-8 rounded-full ${isUser ? 'bg-emerald-600' : 'bg-indigo-600'} flex items-center justify-center text-sm font-bold shrink-0">
-                    ${isUser ? 'ME' : 'AI'}
-                </div>
-                <div class="bg-slate-950 border ${isError ? 'border-red-500/40 text-red-300' : 'border-slate-800 text-slate-300'} p-3.5 rounded-xl max-w-xl text-sm whitespace-pre-wrap">
-                    ${text}
-                </div>
-            `;
-            chatMessages.appendChild(wrapper);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        chatForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const text = chatInput.value.trim();
-            if (!text) return;
-
-            appendMessage('user', text);
-            chatInput.value = '';
-
-            const loadingId = 'loading-' + Date.now();
-            const loadingWrapper = document.createElement('div');
-            loadingWrapper.id = loadingId;
-            loadingWrapper.className = `flex items-start gap-3`;
-            loadingWrapper.innerHTML = `
-                <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-bold shrink-0">AI</div>
-                <div class="bg-slate-950 border border-slate-800 p-3.5 rounded-xl text-sm text-slate-400 animate-pulse">
-                    მიმდინარეობს დამუშავება...
-                </div>
-            `;
-            chatMessages.appendChild(loadingWrapper);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            try {
-                const response = await fetch(`${API_BASE}/api/v1/jobs`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        title: "ვებ ჩატის დავალება",
-                        description: text
-                    })
-                });
-
-                if (!response.ok) throw new Error('სერვერის შეცდომა მოთხოვნისას');
-
-                const data = await response.json();
-                const jobId = data.job_id || data.id;
-
-                let completed = false;
-                let attempts = 0;
-                while (!completed && attempts < 30) {
-                    await new Promise(r => setTimeout(r, 2000));
-                    const statusRes = await fetch(`${API_BASE}/api/v1/jobs/${jobId}/status`);
-                    const statusData = await statusRes.json();
-
-                    if (statusData.status === 'completed') {
-                        const resultRes = await fetch(`${API_BASE}/api/v1/jobs/${jobId}/result`);
-                        const resultData = await resultRes.json();
-                        
-                        document.getElementById(loadingId).remove();
-                        const finalResText = resultData.result || 'დასრულებულია';
-                        appendMessage('ai', finalResText);
-                        completed = true;
-                    } else if (statusData.status === 'failed') {
-                        document.getElementById(loadingId).remove();
-                        appendMessage('ai', '❌ პროცესი ვერ მოხერხდა.', true);
-                        completed = true;
-                    }
-                    attempts++;
-                }
-
-                if (!completed) {
-                    document.getElementById(loadingId).remove();
-                    appendMessage('ai', `⏱️ პროცესი გაიწელა. Job ID: ${jobId}`, true);
-                }
-
-            } catch (err) {
-                document.getElementById(loadingId).remove();
-                appendMessage('ai', `❌ დაკავშირების შეცდომა: სერვერთან მიწვდომა ვერ მოხერხდა. (${err.message})`, true);
-            }
-        });
     </script>
 </body>
 </html>
