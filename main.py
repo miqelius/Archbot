@@ -1,11 +1,25 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 from database import engine, Base, SessionLocal
 from models import RealEstateListing
 from services.market import get_market_data
 from services.weather import get_tbilisi_weather
 from services.ai_engine import evaluate_property
+from services.copilot import process_copilot_query
+from services.scraper import run_property_scraper
+
+class CopilotRequest(BaseModel):
+    query: str
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 def seed_real_estate():
     db = SessionLocal()
@@ -69,8 +83,13 @@ def api_system_status():
     }
 
 @app.get("/api/listings")
-def get_listings():
-    db = SessionLocal()
-    listings = db.query(RealEstateListing).all()
-    db.close()
-    return listings
+def get_listings(db: Session = Depends(get_db)):
+    return db.query(RealEstateListing).all()
+
+@app.post("/api/copilot")
+def api_copilot(req: CopilotRequest, db: Session = Depends(get_db)):
+    return process_copilot_query(req.query, db)
+
+@app.post("/api/automation/run")
+def api_run_automation(db: Session = Depends(get_db)):
+    return run_property_scraper(db)
