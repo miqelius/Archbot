@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String, Float, DateTime
+from datetime import datetime
 from database import Base
 
 class RealEstateListing(Base):
@@ -6,4 +7,12 @@ class RealEstateListing(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
-    price = Column(Float)
+    district = Column(String, index=True)
+    price_usd = Column(Float)
+    area_m2 = Column(Float)
+    rooms = Column(Integer)
+    price_per_m2 = Column(Float)
+    ai_score = Column(Integer)
+    ai_verdict = Column(String)
+    url = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
