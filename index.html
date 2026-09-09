@@ -2,85 +2,261 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Archbot AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archbot AI — AI Command Center</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --bg-primary: #0f172a; --bg-sidebar: #1e293b; --bg-card: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --accent: #6366f1; --border: #334155; }
-        body { margin: 0; font-family: sans-serif; background-color: var(--bg-primary); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
-        aside { width: 260px; background-color: var(--bg-sidebar); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid var(--border); }
-        .logo { font-size: 1.25rem; font-weight: bold; margin-bottom: 30px; letter-spacing: 1px; color: var(--text-main); }
-        nav a { display: block; color: var(--text-muted); text-decoration: none; padding: 10px 15px; border-radius: 6px; margin-bottom: 8px; transition: 0.2s; font-size: 0.95rem; }
-        nav a:hover, nav a.active { background-color: var(--accent); color: white; }
-        main { flex: 1; padding: 30px 40px; overflow-y: auto; display: flex; flex-direction: column; }
-        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
-        .header-title { font-size: 1.25rem; font-weight: 600; color: var(--text-main); }
-        .status-badge { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); }
-        .status-dot { width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; }
-        .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
-        .card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
-        .card-title { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; }
-        .card-value { font-size: 1.5rem; font-weight: bold; color: var(--text-main); }
-        .chat-container { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .chat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .chat-title { font-weight: 600; font-size: 1rem; }
-        .session-badge { background: #334155; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; color: var(--text-muted); }
-        .chat-message { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid var(--accent); font-size: 0.95rem; }
-        .chat-input-area { display: flex; gap: 10px; }
-        .chat-input { flex: 1; background: #0f172a; border: 1px solid var(--border); padding: 12px 15px; border-radius: 6px; color: var(--text-main); font-size: 0.95rem; outline: none; }
-        .chat-input::placeholder { color: var(--text-muted); }
-        .send-btn { background: var(--accent); color: white; border: none; padding: 0 20px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .send-btn:hover { opacity: 0.9; }
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #6366f1;
+            --green: #22c55e;
+            --red: #ef4444;
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg-dark); color: var(--text-main); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; height: 100vh; display: flex; overflow: hidden; }
+
+        aside { width: 240px; background-color: var(--bg-card); border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+        .brand { font-size: 1.1rem; font-weight: 700; letter-spacing: 1px; color: var(--text-main); margin-bottom: 25px; }
+        nav { display: flex; flex-direction: column; gap: 4px; }
+        nav button { background: none; border: none; color: var(--text-muted); padding: 10px 12px; border-radius: 6px; text-align: left; font-size: 0.9rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: space-between; }
+        nav button:hover, nav button.active { background-color: var(--border); color: var(--text-main); }
+        
+        .sidebar-footer { border-top: 1px solid var(--border); padding-top: 15px; }
+        .lang-switcher { display: flex; gap: 8px; margin-bottom: 12px; }
+        .lang-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; }
+        .lang-btn.active { border-color: var(--accent); color: var(--text-main); }
+        .sys-status-indicator { font-size: 0.75rem; color: var(--green); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .dot { width: 6px; height: 6px; background-color: var(--green); border-radius: 50%; }
+
+        main { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
+        .header-title h1 { font-size: 1.5rem; font-weight: 600; }
+        .header-title p { font-size: 0.875rem; color: var(--text-muted); margin-top: 4px; }
+
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .kpi-card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+        .kpi-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .kpi-value { font-size: 1.25rem; font-weight: 700; font-family: var(--font-mono); margin-top: 8px; }
+        .kpi-change { font-size: 0.75rem; margin-top: 4px; }
+        .kpi-change.up { color: var(--green); }
+
+        .dashboard-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+        .panel { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+        .panel-header { font-size: 0.875rem; font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; }
+
+        .copilot-box { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+        .copilot-input-group { display: flex; gap: 10px; margin-top: 12px; }
+        .copilot-input { flex: 1; background-color: var(--bg-dark); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; color: var(--text-main); font-size: 0.875rem; outline: none; }
+        .copilot-btn { background-color: var(--accent); color: white; border: none; padding: 0 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+        .quick-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .action-chip { background-color: var(--bg-dark); border: 1px solid var(--border); color: var(--text-muted); font-size: 0.75rem; padding: 6px 12px; border-radius: 16px; cursor: pointer; }
+        .action-chip:hover { border-color: var(--accent); color: var(--text-main); }
+
+        .property-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .property-card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .score-badge { font-family: var(--font-mono); font-size: 0.75rem; background: rgba(34, 197, 94, 0.1); color: var(--green); border: 1px solid var(--green); padding: 2px 8px; border-radius: 4px; width: fit-content; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; }
+        .modal-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; width: 400px; padding: 24px; }
+        .status-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
     </style>
 </head>
 <body>
+
     <aside>
         <div>
-            <div class="logo">ARCHBOT</div>
+            <div class="brand">ARCHBOT AI</div>
             <nav>
-                <a href="#" class="active">Dashboard & Chat</a>
-                <a href="#">Market & Gold</a>
-                <a href="#">Real Estate Search</a>
-                <a href="#">Celery Tasks</a>
+                <button class="active" onclick="showTab('dashboard')">Dashboard</button>
+                <button onclick="showTab('market')">Market</button>
+                <button onclick="showTab('realestate')">Real Estate</button>
+                <button onclick="showTab('weather')">Weather</button>
+                <button onclick="showTab('automation')">Automation</button>
             </nav>
         </div>
-        <div style="font-size: 0.8rem; color: var(--text-muted);">Render + Netlify Connected</div>
+        <div class="sidebar-footer">
+            <div class="lang-switcher">
+                <button class="lang-btn active" onclick="setLang('en')">EN</button>
+                <button class="lang-btn" onclick="setLang('ka')">KA</button>
+                <button class="lang-btn" onclick="setLang('ru')">RU</button>
+            </div>
+            <div class="sys-status-indicator" onclick="toggleStatusModal()">
+                <div class="dot"></div>
+                <span id="sys-status-text">All systems operational</span>
+            </div>
+        </div>
     </aside>
-    <main>
-        <div class="header-bar">
-            <div class="header-title">Market Intelligence & Web Assistant</div>
-            <div class="status-badge">
-                <div class="status-dot"></div>
-                System Online
+
+    <main id="main-content">
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard">
+            <div class="header-title">
+                <h1 id="txt-greeting">Good morning.</h1>
+                <p id="txt-subtitle">Market pulse. Property intel. One workspace.</p>
+            </div>
+
+            <div class="kpi-grid" style="margin-top: 20px;">
+                <div class="kpi-card">
+                    <div class="kpi-label">USD / GEL</div>
+                    <div class="kpi-value">2.73</div>
+                    <div class="kpi-change up">+0.4%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Gold / oz</div>
+                    <div class="kpi-value" id="val-gold">$2,486.00</div>
+                    <div class="kpi-change up">+1.2%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Properties</div>
+                    <div class="kpi-value">12,842</div>
+                    <div class="kpi-change up">+8.2%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Tbilisi Weather</div>
+                    <div class="kpi-value">24°C</div>
+                    <div class="kpi-change">Clear sky</div>
+                </div>
+            </div>
+
+            <div class="dashboard-row" style="margin-top: 20px;">
+                <div class="panel">
+                    <div class="panel-header">Market Overview</div>
+                    <canvas id="marketChart" height="120"></canvas>
+                </div>
+                <div class="panel">
+                    <div class="panel-header">Market Signal</div>
+                    <div style="color: var(--green); font-weight: bold; font-size: 1.1rem; margin-bottom: 8px;">BULLISH</div>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">Gold is trending up. USD/GEL remains relatively stable based on active market indicators.</p>
+                </div>
+            </div>
+
+            <div class="copilot-box" style="margin-top: 20px;">
+                <div class="panel-header">Ask Archbot</div>
+                <div class="copilot-input-group">
+                    <input type="text" class="copilot-input" placeholder="Ask about the market, a property or anything else...">
+                    <button class="copilot-btn">Run →</button>
+                </div>
+                <div class="quick-actions">
+                    <div class="action-chip">Find properties under $150K</div>
+                    <div class="action-chip">Compare Vake vs Saburtalo</div>
+                    <div class="action-chip">Analyze this listing</div>
+                    <div class="action-chip">What's moving today?</div>
+                </div>
             </div>
         </div>
-        <div class="metrics-grid">
-            <div class="card">
-                <div class="card-title">Active Currency Rates</div>
-                <div class="card-value" style="color: #818cf8;">USD/GEL: 2.72</div>
+
+        <!-- REAL ESTATE VIEW (HIDDEN BY DEFAULT) -->
+        <div id="view-realestate" style="display: none;">
+            <div class="header-title">
+                <h1>Find your next property</h1>
+                <p>Search the market. Compare prices. Spot opportunities.</p>
             </div>
-            <div class="card">
-                <div class="card-title">Gold Price (oz)</div>
-                <div class="card-value" style="color: #f59e0b;">$2,345.50</div>
-            </div>
-            <div class="card">
-                <div class="card-title">Indexed Properties</div>
-                <div class="card-value" style="color: #34d399;">1,420 Listings</div>
+            <div class="property-grid" style="margin-top: 20px;">
+                <div class="property-card">
+                    <div class="score-badge">AI Score 92 · Good deal</div>
+                    <div style="font-size: 1.1rem; font-weight: 600;">Apartment · Saburtalo</div>
+                    <div style="font-size: 1.25rem; font-family: var(--font-mono); font-weight: 700;">$128,000</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">82 m² · 3 rooms · $1,561/m²</div>
+                    <div style="font-size: 0.8rem; color: var(--green);">7.8% below estimated neighborhood average.</div>
+                </div>
             </div>
         </div>
-        <div class="chat-container">
-            <div>
-                <div class="chat-header">
-                    <span class="chat-title">Archbot Intelligence Assistant</span>
-                    <span class="session-badge">Active Session</span>
-                </div>
-                <div class="chat-message">
-                    გამარჯობა! მე ვარ Archbot-ის ინტელექტუალური ასისტენტი. რითი შემიძლია დაგეხმაროთ დღეს?
-                </div>
+
+        <!-- AUTOMATION VIEW (HIDDEN BY DEFAULT) -->
+        <div id="view-automation" style="display: none;">
+            <div class="header-title">
+                <h1>Automation & Celery Tasks</h1>
+                <p>Background worker status and scraping infrastructure.</p>
             </div>
-            <div class="chat-input-area">
-                <input type="text" class="chat-input" placeholder="ჩაწერეთ სათარგმნი ტექსტი ან კითხვა...">
-                <button class="send-btn">გაგზავნა</button>
+            <div class="panel" style="margin-top: 20px;">
+                <div class="panel-header">PROPERTY SCRAPER <span style="color: var(--green);">● Running</span></div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; font-family: var(--font-mono); font-size: 0.875rem;">
+                    <div>Last run: 4 min ago</div>
+                    <div>Listings indexed: 12,842</div>
+                    <div>Duplicates skipped: 384</div>
+                    <div>Failed requests: 3</div>
+                </div>
             </div>
         </div>
     </main>
+
+    <!-- SYSTEM STATUS MODAL -->
+    <div class="modal" id="statusModal">
+        <div class="modal-content">
+            <div class="panel-header">System Infrastructure Status</div>
+            <div class="status-row"><span>API Core</span><span style="color: var(--green);">Operational</span></div>
+            <div class="status-row"><span>Database</span><span style="color: var(--green);">Operational</span></div>
+            <div class="status-row"><span>Market API</span><span style="color: var(--green);">Operational</span></div>
+            <div class="status-row"><span>Property Scraper</span><span style="color: var(--green);">Operational</span></div>
+            <div class="status-row"><span>Celery Worker</span><span style="color: var(--green);">Operational</span></div>
+            <button onclick="toggleStatusModal()" style="margin-top: 16px; background: var(--border); border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; float: right;">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('marketChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'USD/GEL',
+                    data: [2.71, 2.71, 2.72, 2.72, 2.73, 2.73, 2.73],
+                    borderColor: '#6366f1',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+                    y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+
+        function showTab(tabId) {
+            document.querySelectorAll('main > div').forEach(div => div.style.display = 'none');
+            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+            
+            const target = document.getElementById('view-' + tabId);
+            if (target) target.style.display = 'block';
+            event.target.classList.add('active');
+        }
+
+        function toggleStatusModal() {
+            const modal = document.getElementById('statusModal');
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        const i18n = {
+            en: { greeting: "Good morning.", subtitle: "Market pulse. Property intel. One workspace." },
+            ka: { greeting: "დილა მშვიდობისა.", subtitle: "ბაზრის იმპულსი. უძრავი ქონების ანალიტიკა. ერთი სამუშაო სივრცე." },
+            ru: { greeting: "Доброе утро.", subtitle: "Пульс рынка. Аналитика недвижимости. Единое пространство." }
+        };
+
+        function setLang(lang) {
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('txt-greeting').textContent = i18n[lang].greeting;
+            document.getElementById('txt-subtitle').textContent = i18n[lang].subtitle;
+        }
+
+        fetch('/api/gold')
+            .then(res => res.json())
+            .then(data => {
+                if (data.gold_price_oz) {
+                    document.getElementById('val-gold').textContent = '$' + data.gold_price_oz.toLocaleString();
+                }
+            })
+            .catch(() => {});
+    </script>
 </body>
 </html>
