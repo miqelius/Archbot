@@ -47,7 +47,7 @@
 
         .dashboard-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
         .panel { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
-        .panel-header { font-size: 0.875rem; font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; }
+        .panel-header { font-size: 0.875rem; font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
 
         .copilot-box { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
         .copilot-input-group { display: flex; gap: 10px; margin-top: 12px; }
@@ -56,12 +56,15 @@
         .quick-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
         .action-chip { background-color: var(--bg-dark); border: 1px solid var(--border); color: var(--text-muted); font-size: 0.75rem; padding: 6px 12px; border-radius: 16px; cursor: pointer; }
         .action-chip:hover { border-color: var(--accent); color: var(--text-main); }
+        .copilot-output { margin-top: 16px; background-color: var(--bg-dark); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; font-size: 0.875rem; font-family: var(--font-mono); color: var(--text-main); display: none; }
 
         .property-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-        .property-card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .property-card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
         .score-badge { font-family: var(--font-mono); font-size: 0.75rem; background: rgba(34, 197, 94, 0.1); color: var(--green); border: 1px solid var(--green); padding: 2px 8px; border-radius: 4px; width: fit-content; }
         
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; }
+        .btn-action { background-color: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 100; }
         .modal-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; width: 400px; padding: 24px; }
         .status-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
     </style>
@@ -72,18 +75,18 @@
         <div>
             <div class="brand">ARCHBOT AI</div>
             <nav>
-                <button class="active" onclick="showTab('dashboard')">Dashboard</button>
-                <button onclick="showTab('market')">Market</button>
-                <button onclick="showTab('realestate')">Real Estate</button>
-                <button onclick="showTab('weather')">Weather</button>
-                <button onclick="showTab('automation')">Automation</button>
+                <button class="active" onclick="showTab('dashboard', this)">Dashboard</button>
+                <button onclick="showTab('market', this)">Market</button>
+                <button onclick="showTab('realestate', this)">Real Estate</button>
+                <button onclick="showTab('weather', this)">Weather</button>
+                <button onclick="showTab('automation', this)">Automation</button>
             </nav>
         </div>
         <div class="sidebar-footer">
             <div class="lang-switcher">
-                <button class="lang-btn active" onclick="setLang('en')">EN</button>
-                <button class="lang-btn" onclick="setLang('ka')">KA</button>
-                <button class="lang-btn" onclick="setLang('ru')">RU</button>
+                <button class="lang-btn active" onclick="setLang('en', this)">EN</button>
+                <button class="lang-btn" onclick="setLang('ka', this)">KA</button>
+                <button class="lang-btn" onclick="setLang('ru', this)">RU</button>
             </div>
             <div class="sys-status-indicator" onclick="toggleStatusModal()">
                 <div class="dot"></div>
@@ -103,23 +106,23 @@
             <div class="kpi-grid" style="margin-top: 20px;">
                 <div class="kpi-card">
                     <div class="kpi-label">USD / GEL</div>
-                    <div class="kpi-value">2.73</div>
-                    <div class="kpi-change up">+0.4%</div>
+                    <div class="kpi-value" id="val-usd-gel">2.73</div>
+                    <div class="kpi-change up" id="val-usd-change">+0.4%</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">Gold / oz</div>
                     <div class="kpi-value" id="val-gold">$2,486.00</div>
-                    <div class="kpi-change up">+1.2%</div>
+                    <div class="kpi-change up" id="val-gold-change">+1.2%</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">Properties</div>
-                    <div class="kpi-value">12,842</div>
+                    <div class="kpi-value" id="val-props-count">0</div>
                     <div class="kpi-change up">+8.2%</div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">Tbilisi Weather</div>
-                    <div class="kpi-value">24°C</div>
-                    <div class="kpi-change">Clear sky</div>
+                    <div class="kpi-value" id="val-weather-temp">24°C</div>
+                    <div class="kpi-change" id="val-weather-cond">Clear sky</div>
                 </div>
             </div>
 
@@ -130,57 +133,78 @@
                 </div>
                 <div class="panel">
                     <div class="panel-header">Market Signal</div>
-                    <div style="color: var(--green); font-weight: bold; font-size: 1.1rem; margin-bottom: 8px;">BULLISH</div>
-                    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">Gold is trending up. USD/GEL remains relatively stable based on active market indicators.</p>
+                    <div id="val-signal" style="color: var(--green); font-weight: bold; font-size: 1.1rem; margin-bottom: 8px;">BULLISH</div>
+                    <p id="val-signal-desc" style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">Gold is trending up. USD/GEL remains relatively stable based on active market indicators.</p>
                 </div>
             </div>
 
             <div class="copilot-box" style="margin-top: 20px;">
                 <div class="panel-header">Ask Archbot</div>
                 <div class="copilot-input-group">
-                    <input type="text" class="copilot-input" placeholder="Ask about the market, a property or anything else...">
-                    <button class="copilot-btn">Run →</button>
+                    <input type="text" id="copilot-input" class="copilot-input" placeholder="Ask about the market, a property or anything else...">
+                    <button class="copilot-btn" onclick="runCopilot()">Run →</button>
                 </div>
                 <div class="quick-actions">
-                    <div class="action-chip">Find properties under $150K</div>
-                    <div class="action-chip">Compare Vake vs Saburtalo</div>
-                    <div class="action-chip">Analyze this listing</div>
-                    <div class="action-chip">What's moving today?</div>
+                    <div class="action-chip" onclick="setQuickAction('Find properties under $150K')">Find properties under $150K</div>
+                    <div class="action-chip" onclick="setQuickAction('Compare Vake vs Saburtalo')">Compare Vake vs Saburtalo</div>
+                    <div class="action-chip" onclick="setQuickAction('What\'s moving today?')">What's moving today?</div>
                 </div>
+                <div id="copilot-output" class="copilot-output"></div>
             </div>
         </div>
 
-        <!-- REAL ESTATE VIEW (HIDDEN BY DEFAULT) -->
+        <!-- REAL ESTATE VIEW -->
         <div id="view-realestate" style="display: none;">
             <div class="header-title">
                 <h1>Find your next property</h1>
                 <p>Search the market. Compare prices. Spot opportunities.</p>
             </div>
-            <div class="property-grid" style="margin-top: 20px;">
-                <div class="property-card">
-                    <div class="score-badge">AI Score 92 · Good deal</div>
-                    <div style="font-size: 1.1rem; font-weight: 600;">Apartment · Saburtalo</div>
-                    <div style="font-size: 1.25rem; font-family: var(--font-mono); font-weight: 700;">$128,000</div>
-                    <div style="font-size: 0.85rem; color: var(--text-muted);">82 m² · 3 rooms · $1,561/m²</div>
-                    <div style="font-size: 0.8rem; color: var(--green);">7.8% below estimated neighborhood average.</div>
+            <div id="property-list" class="property-grid" style="margin-top: 20px;">
+                <!-- DYNAMIC LISTINGS -->
+            </div>
+        </div>
+
+        <!-- AUTOMATION VIEW -->
+        <div id="view-automation" style="display: none;">
+            <div class="header-title">
+                <h1>Automation & Celery Workers</h1>
+                <p>Background worker status and scraping infrastructure.</p>
+            </div>
+            <div class="panel" style="margin-top: 20px;">
+                <div class="panel-header">
+                    <span>PROPERTY SCRAPER <span style="color: var(--green);">● Running</span></span>
+                    <button class="btn-action" onclick="triggerScraper()">Run now</button>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; font-family: var(--font-mono); font-size: 0.875rem;">
+                    <div>Last run: <span id="auto-last-run">Just now</span></div>
+                    <div>Listings indexed: <span id="auto-indexed">12,842</span></div>
+                    <div>Duplicates skipped: <span id="auto-skipped">384</span></div>
+                    <div>Failed requests: <span id="auto-failed">0</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- AUTOMATION VIEW (HIDDEN BY DEFAULT) -->
-        <div id="view-automation" style="display: none;">
+        <!-- WEATHER VIEW -->
+        <div id="view-weather" style="display: none;">
             <div class="header-title">
-                <h1>Automation & Celery Tasks</h1>
-                <p>Background worker status and scraping infrastructure.</p>
+                <h1>Weather Intelligence</h1>
+                <p>Live weather status and atmospheric indicators for Tbilisi.</p>
             </div>
             <div class="panel" style="margin-top: 20px;">
-                <div class="panel-header">PROPERTY SCRAPER <span style="color: var(--green);">● Running</span></div>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; font-family: var(--font-mono); font-size: 0.875rem;">
-                    <div>Last run: 4 min ago</div>
-                    <div>Listings indexed: 12,842</div>
-                    <div>Duplicates skipped: 384</div>
-                    <div>Failed requests: 3</div>
-                </div>
+                <div style="font-size: 2rem; font-weight: bold;" id="weather-main-temp">24°C</div>
+                <div style="color: var(--text-muted); font-size: 1rem;" id="weather-main-cond">Clear sky</div>
+            </div>
+        </div>
+
+        <!-- MARKET VIEW -->
+        <div id="view-market" style="display: none;">
+            <div class="header-title">
+                <h1>Market Intelligence</h1>
+                <p>Real-time exchange rates and precious metal commodities.</p>
+            </div>
+            <div class="panel" style="margin-top: 20px;">
+                <div class="panel-header">USD / GEL Spot Rate</div>
+                <div style="font-size: 1.5rem; font-family: var(--font-mono);" id="market-usd-spot">2.73 GEL</div>
             </div>
         </div>
     </main>
@@ -189,11 +213,7 @@
     <div class="modal" id="statusModal">
         <div class="modal-content">
             <div class="panel-header">System Infrastructure Status</div>
-            <div class="status-row"><span>API Core</span><span style="color: var(--green);">Operational</span></div>
-            <div class="status-row"><span>Database</span><span style="color: var(--green);">Operational</span></div>
-            <div class="status-row"><span>Market API</span><span style="color: var(--green);">Operational</span></div>
-            <div class="status-row"><span>Property Scraper</span><span style="color: var(--green);">Operational</span></div>
-            <div class="status-row"><span>Celery Worker</span><span style="color: var(--green);">Operational</span></div>
+            <div id="status-rows-container"></div>
             <button onclick="toggleStatusModal()" style="margin-top: 16px; background: var(--border); border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; float: right;">Close</button>
         </div>
     </div>
@@ -222,18 +242,20 @@
             }
         });
 
-        function showTab(tabId) {
+        function showTab(tabId, btn) {
             document.querySelectorAll('main > div').forEach(div => div.style.display = 'none');
-            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
             
             const target = document.getElementById('view-' + tabId);
             if (target) target.style.display = 'block';
-            event.target.classList.add('active');
+            if (btn) btn.classList.add('active');
         }
 
         function toggleStatusModal() {
             const modal = document.getElementById('statusModal');
-            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+            const isVisible = modal.style.display === 'flex';
+            modal.style.display = isVisible ? 'none' : 'flex';
+            if (!isVisible) fetchSystemStatus();
         }
 
         const i18n = {
@@ -242,21 +264,116 @@
             ru: { greeting: "Доброе утро.", subtitle: "Пульс рынка. Аналитика недвижимости. Единое пространство." }
         };
 
-        function setLang(lang) {
-            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+        function setLang(lang, btn) {
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
             document.getElementById('txt-greeting').textContent = i18n[lang].greeting;
             document.getElementById('txt-subtitle').textContent = i18n[lang].subtitle;
         }
 
-        fetch('/api/gold')
+        function fetchMarket() {
+            fetch('/api/market')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('val-usd-gel').textContent = data.usd_gel;
+                    document.getElementById('val-usd-change').textContent = data.usd_gel_change;
+                    document.getElementById('val-gold').textContent = '$' + data.gold_oz.toLocaleString();
+                    document.getElementById('val-gold-change').textContent = data.gold_change;
+                    document.getElementById('val-signal').textContent = data.market_signal;
+                    document.getElementById('val-signal-desc').textContent = data.signal_description;
+                    document.getElementById('market-usd-spot').textContent = data.usd_gel + ' GEL';
+                }).catch(() => {});
+        }
+
+        function fetchWeather() {
+            fetch('/api/weather')
+                .then(res => res.json())
+                .then(data => {
+                    const temp = data.temperature + '°C';
+                    document.getElementById('val-weather-temp').textContent = temp;
+                    document.getElementById('val-weather-cond').textContent = data.condition;
+                    document.getElementById('weather-main-temp').textContent = temp;
+                    document.getElementById('weather-main-cond').textContent = data.condition + ' · Wind: ' + data.wind_speed + ' km/h';
+                }).catch(() => {});
+        }
+
+        function fetchListings() {
+            fetch('/api/listings')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('val-props-count').textContent = data.length.toLocaleString();
+                    const container = document.getElementById('property-list');
+                    container.innerHTML = '';
+                    data.forEach(item => {
+                        const card = document.createElement('div');
+                        card.className = 'property-card';
+                        card.innerHTML = `
+                            <div class="score-badge">AI Score ${item.ai_score} · ${item.ai_verdict}</div>
+                            <div style="font-size: 1.1rem; font-weight: 600;">${item.title}</div>
+                            <div style="font-size: 1.25rem; font-family: var(--font-mono); font-weight: 700;">$${item.price_usd.toLocaleString()}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">${item.area_m2} m² · ${item.rooms} rooms · $${item.price_per_m2}/m²</div>
+                            <div style="font-size: 0.8rem; color: var(--green);">${item.district} District</div>
+                        `;
+                        container.appendChild(card);
+                    });
+                }).catch(() => {});
+        }
+
+        function fetchSystemStatus() {
+            fetch('/api/system/status')
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('status-rows-container');
+                    container.innerHTML = '';
+                    for (const [key, val] of Object.entries(data)) {
+                        const row = document.createElement('div');
+                        row.className = 'status-row';
+                        row.innerHTML = `<span>${key.replace('_', ' ').toUpperCase()}</span><span style="color: var(--green);">${val}</span>`;
+                        container.appendChild(row);
+                    }
+                }).catch(() => {});
+        }
+
+        function setQuickAction(text) {
+            document.getElementById('copilot-input').value = text;
+            runCopilot();
+        }
+
+        function runCopilot() {
+            const input = document.getElementById('copilot-input');
+            const output = document.getElementById('copilot-output');
+            if (!input.value.trim()) return;
+
+            output.style.display = 'block';
+            output.textContent = 'Processing request...';
+
+            fetch('/api/copilot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: input.value })
+            })
             .then(res => res.json())
             .then(data => {
-                if (data.gold_price_oz) {
-                    document.getElementById('val-gold').textContent = '$' + data.gold_price_oz.toLocaleString();
-                }
+                output.textContent = JSON.stringify(data, null, 2);
             })
-            .catch(() => {});
+            .catch(() => {
+                output.textContent = 'Error processing request.';
+            });
+        }
+
+        function triggerScraper() {
+            fetch('/api/automation/run', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('auto-last-run').textContent = 'Just now';
+                    fetchListings();
+                }).catch(() => {});
+        }
+
+        // Initial loading
+        fetchMarket();
+        fetchWeather();
+        fetchListings();
     </script>
 </body>
 </html>
