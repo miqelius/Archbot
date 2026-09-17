@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archbot & MatchMind AI Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between hidden md:flex">
+        <div class="p-6 space-y-6">
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl">🤖</span>
+                <span class="font-bold text-lg text-white">Archbot <span class="text-red-500">AI</span></span>
+            </div>
+            <nav class="space-y-1 text-sm font-medium">
+                <a href="/dashboard.html" class="flex items-center space-x-3 px-3 py-2 bg-slate-800 text-white rounded-lg">📊 <span>Dashboard</span></a>
+                <a href="/app" class="flex items-center space-x-3 px-3 py-2 text-slate-400 hover:bg-slate-800/50 hover:text-white rounded-lg">⚡ <span>MatchMind Hub</span></a>
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 text-slate-400 hover:bg-slate-800/50 hover:text-white rounded-lg">🏢 <span>Real Estate</span></a>
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 text-slate-400 hover:bg-slate-800/50 hover:text-white rounded-lg">⛅ <span>Weather</span></a>
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 text-slate-400 hover:bg-slate-800/50 hover:text-white rounded-lg">⚙️ <span>Automation</span></a>
+            </nav>
+        </div>
+        <div class="p-6 border-t border-slate-800 text-xs text-slate-500 flex justify-between items-center">
+            <span>EN | KA | RU</span>
+            <span class="text-emerald-400 font-semibold">● Live</span>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6 lg:p-10 space-y-8 overflow-y-auto">
+        <header class="flex justify-between items-center border-b border-slate-800 pb-6">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-white">Good morning.</h1>
+                <p class="text-sm text-slate-400">Market pulse, property intelligence & live ecosystem.</p>
+            </div>
+            <a href="/app" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg transition-colors">⚡ Live Sports Hub ↗</a>
+        </header>
+
+        <!-- Metrics Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- USD / GEL -->
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">USD / GEL</div>
+                <div id="usd-gel-val" class="text-3xl font-extrabold text-white mt-2">იტვირთება...</div>
+                <div class="text-xs text-emerald-400 mt-1">●მოქმედი კურსი</div>
+            </div>
+            <!-- Gold / OZ -->
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">GOLD / OZ</div>
+                <div id="gold-val" class="text-3xl font-extrabold text-white mt-2">$2,486.00</div>
+                <div class="text-xs text-emerald-400 mt-1">+1.2% ლაივ მონაცემები</div>
+            </div>
+            <!-- Tbilisi Weather -->
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">TBILISI WEATHER</div>
+                <div id="weather-val" class="text-3xl font-extrabold text-white mt-2">იტვირთება...</div>
+                <div id="weather-desc" class="text-xs text-slate-400 mt-1">ქარი: იტვირთება...</div>
+            </div>
+        </div>
+
+        <!-- Automation Status -->
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-lg space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-white text-base">Automation & Telegram Bot Workers</h3>
+                <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs rounded-full border border-emerald-500/20 font-semibold">● Active (Celery)</span>
+            </div>
+            <p class="text-xs text-slate-400">ბექენდი სინქრონიზებულია Telegram ბოტთან (@infobot88bot) და სპორტულ აპებთან.</p>
+        </div>
+    </main>
+
+    <script>
+    async function loadDashboardData() {
+        try {
+            const res = await fetch('/api/market-weather');
+            const data = await res.json();
+            if (data.status === 'success') {
+                document.getElementById('usd-gel-val').innerText = data.usd_gel;
+                document.getElementById('gold-val').innerText = "$" + data.gold.toFixed(2);
+                document.getElementById('weather-val').innerText = data.temperature + "°C";
+                document.getElementById('weather-desc').innerText = "ქარი: " + data.wind_speed + " km/h • თბილისი";
+            }
+        } catch(e) {
+            console.error("Dashboard data load error:", e);
+        }
+    }
+    document.addEventListener("DOMContentLoaded", loadDashboardData);
+    </script>
+</body>
+</html>

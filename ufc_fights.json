@@ -1,0 +1,22 @@
+[
+    {
+        "fighter_a": "Alex Pereira",
+        "fighter_b": "Magomed Ankalaev",
+        "sport": "UFC"
+    },
+    {
+        "fighter_a": "Islam Makhachev",
+        "fighter_b": "Arman Tsarukyan",
+        "sport": "UFC"
+    },
+    {
+        "fighter_a": "Ilia Topuria",
+        "fighter_b": "Max Holloway",
+        "sport": "UFC"
+    },
+    {
+        "fighter_a": "Tom Aspinall",
+        "fighter_b": "Curtis Blaydes",
+        "sport": "UFC"
+    }
+]
