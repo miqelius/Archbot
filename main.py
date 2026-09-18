@@ -59,3 +59,27 @@ app.include_router(real_estate_router, prefix="/api/listings", tags=["Listings"]
 app.include_router(weather_router, prefix="/api/weather", tags=["Weather"])
 app.include_router(copilot_router, prefix="/api/copilot", tags=["Copilot"])
 app.include_router(automation_router, prefix="/api/automation", tags=["Automation"])
+
+
+
+
+
+@app.get("/api/sports/live", tags=["Sports"])
+def get_live_sports():
+    return {
+        "status": "success",
+        "data": {
+            "football": [
+                {"home": "Real Madrid", "away": "FC Barcelona", "score": "2 : 1", "status": "65'", "league": "La Liga"},
+                {"home": "Arsenal FC", "away": "Manchester City", "score": "1 : 1", "status": "HT", "league": "Premier League"}
+            ],
+            "ufc": [
+                {"event": "UFC 319 • Main Event", "fighter_a": "Islam Makhachev", "fighter_b": "Arman Tsarukyan", "prob_a": 58, "prob_b": 42, "weight": "Lightweight Title", "status": "UPCOMING"},
+                {"event": "UFC Fight Night", "fighter_a": "Max Holloway", "fighter_b": "Justin Gaethje", "prob_a": 52, "prob_b": 48, "weight": "Bmf / Lightweight", "status": "UPCOMING"}
+            ],
+            "f1": [
+                {"pos": 1, "driver": "Max Verstappen", "team": "Red Bull", "time": "Winner", "pts": 292},
+                {"pos": 2, "driver": "Lando Norris", "team": "McLaren", "time": "+4.3s", "pts": 265}
+            ]
+        }
+    }
