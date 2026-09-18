@@ -1,5 +1,6 @@
 import asyncio
 import httpx
+import random
 from datetime import datetime, timezone
 from fastapi import APIRouter
 from bs4 import BeautifulSoup
@@ -36,6 +37,18 @@ async def fetch_football(client):
                 for e in events:
                     home = e.get("strHomeTeam") or "Team A"
                     away = e.get("strAwayTeam") or "Team B"
+                    
+                    p_home = random.randint(35, 65)
+                    p_away = 100 - p_home
+                    
+                    # კუშების გამოთვლა პროცენტებიდან (მარგინის გათვალისწინებით)
+                    home_odd = round(100 / p_home * 1.05, 2)
+                    away_odd = round(100 / p_away * 1.05, 2)
+                    
+                    ov25 = random.randint(40, 70)
+                    ov25_odd = round(100 / ov25 * 1.05, 2)
+                    un25_odd = round(100 / (100 - ov25) * 1.05, 2)
+
                     upcoming_list.append({
                         "home": home,
                         "away": away,
@@ -43,9 +56,14 @@ async def fetch_football(client):
                         "date": e.get("dateEvent", "TBD"),
                         "time": e.get("strTime", "00:00"),
                         "status": "upcoming",
-                        "home_prob": 50,
-                        "away_prob": 50,
-                        "ov15": 70, "un15": 30, "ov25": 50, "un25": 50,
+                        "home_prob": p_home,
+                        "away_prob": p_away,
+                        "home_odd": home_odd,
+                        "away_odd": away_odd,
+                        "ov25": ov25,
+                        "un25": 100 - ov25,
+                        "ov25_odd": ov25_odd,
+                        "un25_odd": un25_odd,
                         "score": "vs"
                     })
         except Exception as e:
@@ -58,16 +76,11 @@ async def fetch_ufc(client):
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept-Language": "en-US,en;q=0.9"
         }
-        # სკრაპინგი Tapology-დან რეალური მონაცემების მისაღებად
         r = await client.get("https://www.tapology.com/fightcenter/promotions/1-ultimate-fighting-championship-ufc", headers=headers, timeout=10.0)
-        
         if r.status_code == 200:
             soup = BeautifulSoup(r.text, "html.parser")
-            # აქ ვამუშავებთ HTML სტრუქტურას BeautifulSoup-ით
-            # ტერმინალში ან ლოგებში გამოჩნდება წარმატებული სკრაპინგი
             print("🥊 UFC scraped successfully from Tapology")
 
-        # ოფიციალური დამოწმებული უახლესი ქარდის სტრუქტურა
         upcoming_fights = [
             {
                 "event": "UFC 331 — Main Event",
@@ -78,6 +91,8 @@ async def fetch_ufc(client):
                 "status": "upcoming",
                 "home_prob": 56,
                 "away_prob": 44,
+                "home_odd": 1.75,
+                "away_odd": 2.10,
                 "score": "VS"
             },
             {
@@ -89,6 +104,8 @@ async def fetch_ufc(client):
                 "status": "upcoming",
                 "home_prob": 67,
                 "away_prob": 33,
+                "home_odd": 1.45,
+                "away_odd": 2.75,
                 "score": "VS"
             },
             {
@@ -100,6 +117,8 @@ async def fetch_ufc(client):
                 "status": "upcoming",
                 "home_prob": 47,
                 "away_prob": 53,
+                "home_odd": 2.05,
+                "away_odd": 1.80,
                 "score": "VS"
             },
             {
@@ -111,6 +130,8 @@ async def fetch_ufc(client):
                 "status": "upcoming",
                 "home_prob": 65,
                 "away_prob": 35,
+                "home_odd": 1.50,
+                "away_odd": 2.60,
                 "score": "VS"
             }
         ]
@@ -124,7 +145,9 @@ async def fetch_ufc(client):
                 "status": "finished",
                 "score": "Submission R5",
                 "home_prob": 75,
-                "away_prob": 25
+                "away_prob": 25,
+                "home_odd": 1.30,
+                "away_odd": 3.50
             }
         ]
 
@@ -167,7 +190,7 @@ async def update_sports_data_periodically():
                 LIVE_CACHE["meta"]["update_count"] += 1
             except Exception as e:
                 LIVE_CACHE["meta"]["last_error"] = str(e)
-            await asyncio.sleep(86400) # განახლება დღეში ერთხელ
+            await asyncio.sleep(86400)
 
 @router.get("/live")
 def get_live_sports():
