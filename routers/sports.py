@@ -27,138 +27,96 @@ TOP_LEAGUES = [
 
 async def fetch_football(client):
     upcoming_list = []
+    finished_list = []
     for league in TOP_LEAGUES:
         try:
-            url = f"https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id={league['id']}"
-            r = await client.get(url, timeout=8.0)
-            events = []
-            if r.status_code == 200:
-                events = (r.json() or {}).get("events") or []
-            
-            if not events:
-                url_alt = f"https://www.thesportsdb.com/api/v1/json/3/eventsseason.php?id={league['id']}&s=2025-2026"
-                r_alt = await client.get(url_alt, timeout=8.0)
-                if r_alt.status_code == 200:
-                    events = (r_alt.json() or {}).get("events") or []
+            # 1. მომავალი მატჩები
+            url_next = f"https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id={league['id']}"
+            r_next = await client.get(url_next, timeout=8.0)
+            if r_next.status_code == 200:
+                events = (r_next.json() or {}).get("events") or []
+                for e in events[:3]:
+                    home = e.get("strHomeTeam") or "Team A"
+                    away = e.get("strAwayTeam") or "Team B"
+                    p_home = random.randint(40, 60)
+                    p_away = 100 - p_home
+                    upcoming_list.append({
+                        "home": home,
+                        "away": away,
+                        "league": league["name"],
+                        "date": e.get("dateEvent", "TBD"),
+                        "time": e.get("strTime", "00:00"),
+                        "status": "upcoming",
+                        "home_prob": p_home,
+                        "away_prob": p_away,
+                        "home_odd": round(100 / p_home * 1.05, 2),
+                        "away_odd": round(100 / p_away * 1.05, 2),
+                        "score": "vs"
+                    })
 
-            for e in events[:5]:
-                home = e.get("strHomeTeam") or "Team A"
-                away = e.get("strAwayTeam") or "Team B"
-                p_home = random.randint(40, 60)
-                p_away = 100 - p_home
-                home_odd = round(100 / p_home * 1.05, 2)
-                away_odd = round(100 / p_away * 1.05, 2)
-
-                upcoming_list.append({
-                    "home": home,
-                    "away": away,
-                    "league": league["name"],
-                    "date": e.get("dateEvent", "TBD"),
-                    "time": e.get("strTime", "00:00"),
-                    "status": "upcoming",
-                    "home_prob": p_home,
-                    "away_prob": p_away,
-                    "home_odd": home_odd,
-                    "away_odd": away_odd,
-                    "score": "vs"
-                })
+            # 2. ბოლო ჩატარებული შედეგები (უკანასკნელი ტური)
+            url_past = f"https://www.thesportsdb.com/api/v1/json/3/eventspastleague.php?id={league['id']}"
+            r_past = await client.get(url_past, timeout=8.0)
+            if r_past.status_code == 200:
+                past_events = (r_past.json() or {}).get("events") or []
+                for e in past_events[:3]:
+                    home = e.get("strHomeTeam") or "Team A"
+                    away = e.get("strAwayTeam") or "Team B"
+                    home_score = e.get("intHomeScore") if e.get("intHomeScore") is not None else "0"
+                    away_score = e.get("intAwayScore") if e.get("intAwayScore") is not None else "0"
+                    finished_list.append({
+                        "home": home,
+                        "away": away,
+                        "league": league["name"],
+                        "date": e.get("dateEvent", "TBD"),
+                        "time": e.get("strTime", "00:00"),
+                        "status": "finished",
+                        "home_prob": 50,
+                        "away_prob": 50,
+                        "home_odd": 1.90,
+                        "away_odd": 1.90,
+                        "score": f"{home_score} : {away_score}"
+                    })
         except Exception:
             pass
-
-    # გუშინდელი (18 სექტემბერი) ჩატარებული რეალური ტოპ მატჩები
-    finished_list = [
-        {
-            "home": "Real Madrid",
-            "away": "Barcelona",
-            "league": "La Liga",
-            "date": "2026-09-18",
-            "time": "22:00",
-            "status": "finished",
-            "home_prob": 52,
-            "away_prob": 48,
-            "home_odd": 1.90,
-            "away_odd": 2.00,
-            "score": "2 : 1"
-        },
-        {
-            "home": "Manchester City",
-            "away": "Arsenal",
-            "league": "Premier League",
-            "date": "2026-09-18",
-            "time": "20:30",
-            "status": "finished",
-            "home_prob": 55,
-            "away_prob": 45,
-            "home_odd": 1.75,
-            "away_odd": 2.15,
-            "score": "3 : 2"
-        }
-    ]
-
     return {"live": [], "upcoming": upcoming_list, "finished": finished_list}
 
 async def fetch_ufc(client):
     try:
-        # დღევანდელი რეალური UFC 331 ივენთი (19 სექტემბერი, 2026)
-        upcoming_fights = [
-            {
-                "event": "UFC 331 — Main Event (Flyweight Championship)",
-                "fighter_a": "Joshua Van",
-                "fighter_b": "Alexandre Pantoja",
-                "date": "2026-09-19",
-                "time": "21:00",
-                "status": "upcoming",
-                "home_prob": 52,
-                "away_prob": 48,
-                "home_odd": 1.85,
-                "away_odd": 1.95,
-                "score": "VS"
-            },
-            {
-                "event": "UFC 331 — Main Card",
-                "fighter_a": "Arman Tsarukyan",
-                "fighter_b": "Mauricio Ruffy",
-                "date": "2026-09-19",
-                "time": "20:30",
-                "status": "upcoming",
-                "home_prob": 58,
-                "away_prob": 42,
-                "home_odd": 1.70,
-                "away_odd": 2.20,
-                "score": "VS"
-            },
-            {
-                "event": "UFC 331 — Main Card",
-                "fighter_a": "Curtis Blaydes",
-                "fighter_b": "Waldo Cortes-Acosta",
-                "date": "2026-09-19",
-                "time": "20:00",
-                "status": "upcoming",
-                "home_prob": 65,
-                "away_prob": 35,
-                "home_odd": 1.50,
-                "away_odd": 2.60,
-                "score": "VS"
-            }
-        ]
+        r = await client.get("https://ufcapi.aristotle.me/api/events?limit=5", timeout=10.0)
+        if r.status_code != 200:
+            raise Exception("UFC API error")
+        events = r.json()
+        upcoming, finished = [], []
 
-        # გუშინდელი / წინა კვირის ჩატარებული ბრძოლები
-        finished_fights = [
-            {
-                "event": "UFC Fight Night — Main Event",
-                "fighter_a": "Alexa Grasso",
-                "fighter_b": "Manon Fiorot",
-                "date": "2026-09-12",
-                "status": "finished",
-                "score": "Decision (Unanimous)",
-                "home_prob": 48,
-                "away_prob": 52,
-                "home_odd": 2.00,
-                "away_odd": 1.85
-            }
-        ]
+        for ev in events:
+            event_name = ev.get("name", "UFC Event")
+            date = ev.get("date", "TBD")
+            is_finished = ev.get("status") == "finished"
 
-        return {"live": [], "upcoming": upcoming_fights, "finished": finished_fights}
+            for fight in ev.get("fights", [])[:4]:
+                fa = fight.get("fighter_a", {}).get("name", "Fighter 1")
+                fb = fight.get("fighter_b", {}).get("name", "Fighter 2")
+                
+                item = {
+                    "event": event_name,
+                    "fighter_a": fa,
+                    "fighter_b": fb,
+                    "date": date,
+                    "time": "22:00",
+                    "status": "finished" if is_finished else "upcoming",
+                    "home_prob": 52,
+                    "away_prob": 48,
+                    "home_odd": 1.85,
+                    "away_odd": 1.95,
+                    "score": fight.get("result", "VS") if is_finished else "VS"
+                }
+                if is_finished:
+                    finished.append(item)
+                else:
+                    upcoming.append(item)
+
+        return {"live": [], "upcoming": upcoming, "finished": finished}
     except Exception:
         return {"live": [], "upcoming": [], "finished": []}
 
